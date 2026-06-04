@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>suzeng_blog</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <h1 id="logo">suzeng_blog</h1>
+            <nav>
+                <button id="btn-write" class="btn btn-primary admin-only hidden"><i class="fa-solid fa-pen"></i> 글쓰기</button>
+                <button id="btn-login-nav" class="btn btn-secondary"><i class="fa-solid fa-lock"></i> 관리자 로그인</button>
+                <button id="btn-logout-nav" class="btn btn-secondary hidden"><i class="fa-solid fa-lock-open"></i> 로그아웃</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <section id="view-home" class="view">
+            <div class="blog-layout">
+                <aside class="sidebar">
+                    <div class="sidebar-header">
+                        <h3>Categories</h3>
+                        <button id="btn-add-category" class="btn-icon admin-only hidden" title="카테고리 추가"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <ul id="category-list">
+                        </ul>
+                </aside>
+                <section class="main-content">
+                    <h2 id="current-category-title">모든 글 보기</h2>
+                    <div id="post-list" class="post-list">
+                        </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="view-detail" class="view hidden">
+            <div class="detail-container">
+                <button class="btn-back btn-text"><i class="fa-solid fa-arrow-left"></i> 목록으로</button>
+                <div class="detail-header">
+                    <span id="detail-category" class="badge">Category</span>
+                    <h1 id="detail-title">게시글 제목</h1>
+                    <div class="detail-meta">
+                        <span id="detail-date">2026. 06. 05</span>
+                        <div class="admin-controls admin-only hidden">
+                            <button id="btn-edit-post" class="btn-icon" title="수정"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button id="btn-delete-post" class="btn-icon delete" title="삭제"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div id="detail-content" class="detail-content">
+                    </div>
+            </div>
+        </section>
+
+        <section id="view-write" class="view hidden">
+            <div class="form-container">
+                <h2 id="write-view-title">새 글 작성하기</h2>
+                <form id="post-form">
+                    <div class="form-group">
+                        <label for="post-category">카테고리 선택</label>
+                        <select id="post-category" required>
+                            </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="post-title">제목</label>
+                        <input type="text" id="post-title" placeholder="제목을 입력하세요" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>본문 내용</label>
+                        <div id="editor-blocks" class="editor-blocks">
+                            </div>
+                        <div class="editor-controls">
+                            <button type="button" id="btn-add-text-block" class="btn btn-secondary"><i class="fa-solid fa-align-left"></i> 텍스트 추가</button>
+                            <button type="button" id="btn-add-code-block" class="btn btn-secondary"><i class="fa-solid fa-code"></i> 코드 추가</button>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary btn-back">취소</button>
+                        <button type="submit" id="btn-submit-post" class="btn btn-primary">저장하기</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>관리자 인증</h3>
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="이메일" required>
+                <input type="password" id="login-password" placeholder="비밀번호" required>
+                <div class="modal-actions">
+                    <button type="button" id="btn-close-modal" class="btn btn-secondary">닫기</button>
+                    <button type="submit" class="btn btn-primary">로그인</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    
+    <script type="module" src="script.js"></script>
+</body>
+</html>
