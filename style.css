@@ -6,8 +6,8 @@
     --text-main: #ffffff;
     --text-muted: #a0a0a5;
     /* [요구사항 2] 포인트 컬러 변경 (치지직 로고 형광 컬러 계열 반영) */
-    --accent-color: #00FFA3;
-    --accent-hover: #00FF9D;
+    --accent-color: #00c77e;
+    --accent-hover: #00ca7d;
     --danger-color: #ff5252;
 }
 
@@ -37,8 +37,8 @@ body {
 
 .badge {
     background: var(--accent-color);
-    color: #000000;
-    padding: 4px 8px;z
+    color: #1a1a1a;
+    padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.8rem;
     font-weight: bold;
