@@ -1,3 +1,13 @@
+@font-face {
+    font-family: 'NeoDunggeunmo Pro';
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+    src: url('neodgm-pro-webfont-main/neodgm_pro/neodgm_pro.woff2') format('woff2'),
+        url('neodgm-pro-webfont-main/neodgm_pro/neodgm_pro.woff') format('woff'),
+        url('neodgm-pro-webfont-main/neodgm_pro/neodgm_pro.ttf') format('truetype');
+}
+
 /* 전역 변수 설정 */
 :root {
     --bg-color: #0f0f11;
@@ -116,9 +126,11 @@ header {
 }
 
 #logo {
+    font-family: 'NeoDunggeunmo Pro', sans-serif;
     font-size: 1.5rem;
     cursor: pointer;
     letter-spacing: -0.5px;
+    color: #00ff37;
 }
 
 /* 레이아웃 구조 */
