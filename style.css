@@ -37,8 +37,8 @@ body {
 
 .badge {
     background: var(--accent-color);
-    color: #fff;
-    padding: 4px 8px;
+    color: #000000;
+    padding: 4px 8px;z
     border-radius: 4px;
     font-size: 0.8rem;
     font-weight: bold;
