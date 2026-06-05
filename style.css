@@ -5,8 +5,9 @@
     --border-color: #2d2d34;
     --text-main: #ffffff;
     --text-muted: #a0a0a5;
-    --accent-color: #00adb5;
-    --accent-hover: #008c92;
+    /* [요구사항 2] 포인트 컬러 변경 (치지직 로고 형광 컬러 계열 반영) */
+    --accent-color: #00FFA3;
+    --accent-hover: #00FF9D;
     --danger-color: #ff5252;
 }
 

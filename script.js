@@ -355,8 +355,13 @@ function copyToClipboard(text, buttonEl) {
     });
 }
 
-// 네비게이션 제어 바인딩
-document.getElementById('logo').addEventListener('click', () => { selectedCategory = null; switchView('home'); initBlog(); });
+/* [요구사항 3] 네비게이션 제어 바인딩 수정 (로고 클릭 시 카테고리 텍스트 초기화 버그 해결) */
+document.getElementById('logo').addEventListener('click', () => { 
+    selectedCategory = null; 
+    document.getElementById('current-category-title').textContent = '모든 글 보기';
+    switchView('home'); 
+    initBlog(); 
+});
 const backButtons = document.querySelectorAll('.btn-back');
 backButtons.forEach(btn => btn.addEventListener('click', () => switchView('home')));
 
