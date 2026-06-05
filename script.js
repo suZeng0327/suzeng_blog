@@ -252,10 +252,33 @@ function createBlockElement(type, value = '') {
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    imgPreview.src = e.target.result;
-                    imgPreview.style.display = 'block';
-                    hiddenInput.value = e.target.result;
-                    dropzoneText.textContent = '사진이 선택되었습니다 (클릭하여 변경)';
+                    // 이미지 리사이징(압축) 로직 추가
+                    const img = new Image();
+                    img.onload = () => {
+                        const MAX_WIDTH = 800; // 최대 너비 지정
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > MAX_WIDTH) {
+                            height = Math.round((height * MAX_WIDTH) / width);
+                            width = MAX_WIDTH;
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // JPEG 형식으로 화질 80%로 압축하여 크기 대폭 감소
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                        imgPreview.src = compressedDataUrl;
+                        imgPreview.style.display = 'block';
+                        hiddenInput.value = compressedDataUrl;
+                        dropzoneText.textContent = '사진이 선택되었습니다 (클릭하여 변경)';
+                    };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
@@ -291,7 +314,13 @@ function createBlockElement(type, value = '') {
         `;
     }
 
-    wrapper.querySelector('.btn-remove-block').addEventListener('click', () => wrapper.remove());
+    // 삭제 버튼 클릭 시 경고창 띄우도록 수정
+    wrapper.querySelector('.btn-remove-block').addEventListener('click', () => {
+        if (confirm('진짜 삭제하겠습니까?')) {
+            wrapper.remove();
+        }
+    });
+
     editorBlocksContainer.appendChild(wrapper);
 }
 
