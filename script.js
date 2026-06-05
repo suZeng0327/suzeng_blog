@@ -1,16 +1,17 @@
+// [요구사항 1, 2] increment 기능 임포트 추가
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, getDoc, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // ⚠️ 본인의 Firebase 구성 정보(Config)를 아래에 덮어씌우세요.
 const firebaseConfig = {
-  apiKey: "AIzaSyBrgybfKdZnE9AVg5rCvvAA4YU3mm_i_DI",
-  authDomain: "suzengblog.firebaseapp.com",
-  projectId: "suzengblog",
-  storageBucket: "suzengblog.firebasestorage.app",
-  messagingSenderId: "851038427795",
-  appId: "1:851038427795:web:1ed3b8ebd27ba747514b66",
-  measurementId: "G-W5H4E4YBFH"
+    apiKey: "AIzaSyBrgybfKdZnE9AVg5rCvvAA4YU3mm_i_DI",
+    authDomain: "suzengblog.firebaseapp.com",
+    projectId: "suzengblog",
+    storageBucket: "suzengblog.firebasestorage.app",
+    messagingSenderId: "851038427795",
+    appId: "1:851038427795:web:1ed3b8ebd27ba747514b66",
+    measurementId: "G-W5H4E4YBFH"
 };
 
 // 앱 초기화
@@ -30,6 +31,25 @@ const views = {
     detail: document.getElementById('view-detail'),
     write: document.getElementById('view-write')
 };
+
+// [요구사항 2] 전체 사이트 방문수 업데이트 함수
+async function updateVisitCount() {
+    const visitRef = doc(db, "stats", "visits");
+    try {
+        await updateDoc(visitRef, { count: increment(1) });
+    } catch (e) {
+        // 문서가 없으면 최초 생성
+        await setDoc(visitRef, { count: 1 });
+    }
+    const snap = await getDoc(visitRef);
+    if (snap.exists()) {
+        const countElem = document.getElementById('site-visit-count');
+        if (countElem) countElem.textContent = `사이트 방문수: ${snap.data().count}회`;
+    }
+}
+
+// 사이트 접속 시 방문수 카운트 실행
+updateVisitCount();
 
 // --- 화면 전환 로직 (SPA 구현) ---
 function switchView(viewName) {
@@ -156,6 +176,11 @@ async function loadPosts() {
 // 상세 보기 전환
 async function showPostDetail(postId) {
     const docRef = doc(db, "posts", postId);
+
+    // [요구사항 1] 개별 글 조회수 1 증가
+    await updateDoc(docRef, { views: increment(1) });
+
+    // 증가된 데이터를 포함하여 문서 다시 가져오기
     const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) return alert('존재하지 않는 게시글입니다.');
 
@@ -165,6 +190,10 @@ async function showPostDetail(postId) {
     document.getElementById('detail-title').textContent = post.title;
     document.getElementById('detail-category').textContent = post.categoryName;
     document.getElementById('detail-date').textContent = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString() : '';
+
+    // [요구사항 1] 화면에 조회수 텍스트 렌더링
+    const viewsCount = post.views || 0;
+    document.getElementById('detail-views').textContent = `조회수: ${viewsCount}`;
 
     const contentContainer = document.getElementById('detail-content');
     contentContainer.innerHTML = '';
@@ -265,6 +294,7 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
         } else {
             // 새 글 생성 시나리오
             postData.createdAt = new Date();
+            postData.views = 0; // [요구사항 1] 새 글 생성 시 조회수 초기화
             await addDoc(collection(db, "posts"), postData);
             alert('글이 정상적으로 등록되었습니다.');
         }
@@ -300,7 +330,7 @@ document.getElementById('btn-delete-post').addEventListener('click', async () =>
     initBlog();
 });
 
-// 카테고리 제어 스크립트 이벤트 위임 기법
+// 카테고 제어 스크립트 이벤트 위임 기법
 document.getElementById('category-list').addEventListener('click', async (e) => {
     const target = e.target;
     const li = target.closest('li');
@@ -355,12 +385,12 @@ function copyToClipboard(text, buttonEl) {
     });
 }
 
-/* [요구사항 3] 네비게이션 제어 바인딩 수정 (로고 클릭 시 카테고리 텍스트 초기화 버그 해결) */
-document.getElementById('logo').addEventListener('click', () => { 
-    selectedCategory = null; 
+// 네비게이션 제어 바인딩 수정
+document.getElementById('logo').addEventListener('click', () => {
+    selectedCategory = null;
     document.getElementById('current-category-title').textContent = '모든 글 보기';
-    switchView('home'); 
-    initBlog(); 
+    switchView('home');
+    initBlog();
 });
 const backButtons = document.querySelectorAll('.btn-back');
 backButtons.forEach(btn => btn.addEventListener('click', () => switchView('home')));

@@ -5,7 +5,7 @@
     --border-color: #2d2d34;
     --text-main: #ffffff;
     --text-muted: #a0a0a5;
-    /* [요구사항 2] 포인트 컬러 변경 (치지직 로고 형광 컬러 계열 반영) */
+    /* 포인트 컬러 변경 (치지직 로고 형광 컬러 계열 반영) */
     --accent-color: #00c77e;
     --accent-hover: #00ca7d;
     --danger-color: #ff5252;
@@ -162,6 +162,12 @@ header {
 #category-list li.active {
     background-color: var(--border-color);
     color: var(--accent-color);
+}
+
+/* [요구사항 3] 카테고리 이름 위치 상단 이동 및 여백 추가 */
+#current-category-title {
+    margin-top: -5px;
+    margin-bottom: 20px;
 }
 
 /* 게시글 목록 카드 */
