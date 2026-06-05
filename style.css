@@ -399,3 +399,19 @@ code[class*="language-"] {
         grid-template-columns: 1fr;
     }
 }
+
+/* 추가된 사진 블럭 및 본문 이미지 스타일 (크기에 딱 맞춰 들어가게 설정) */
+.image-dropzone {
+    transition: border-color 0.2s, background-color 0.2s;
+}
+.image-dropzone:hover {
+    border-color: var(--accent-color) !important;
+    background-color: rgba(0, 199, 126, 0.05);
+}
+.detail-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px auto;
+    border-radius: 6px;
+}

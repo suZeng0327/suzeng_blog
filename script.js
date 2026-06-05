@@ -209,6 +209,10 @@ async function showPostDetail(postId) {
                 `;
                 wrapper.querySelector('.btn-copy').addEventListener('click', () => copyToClipboard(block.value, wrapper.querySelector('.btn-copy')));
                 contentContainer.appendChild(wrapper);
+            } else if (block.type === 'image') {
+                const img = document.createElement('img');
+                img.src = block.value;
+                contentContainer.appendChild(img);
             }
         });
         Prism.highlightAll();
@@ -223,17 +227,77 @@ function createBlockElement(type, value = '') {
     const wrapper = document.createElement('div');
     wrapper.className = 'block-item';
     wrapper.dataset.type = type;
-    wrapper.innerHTML = `
-        <button type="button" class="btn-remove-block">X</button>
-        <span class="badge" style="background:#444; margin-bottom:5px; display:inline-block;">${type.toUpperCase()}</span>
-        <textarea rows="${type === 'text' ? 4 : 6}" style="${type === 'code' ? 'font-family:Consolas, monospace;' : ''}" placeholder="${type === 'text' ? '내용을 입력하세요' : '// 코드를 입력하세요'}">${value}</textarea>
-    `;
+
+    if (type === 'image') {
+        wrapper.innerHTML = `
+            <button type="button" class="btn-remove-block">X</button>
+            <span class="badge" style="background:#444; margin-bottom:5px; display:inline-block;">${type.toUpperCase()}</span>
+            <div class="image-dropzone" style="border: 2px dashed var(--border-color); padding: 20px; text-align: center; border-radius: 6px; cursor: pointer;">
+                <p class="dropzone-text" style="color: var(--text-muted); margin: 0;">사진을 드래그하거나 클릭하여 선택하세요</p>
+                <input type="file" accept="image/*" style="display: none;">
+                <img src="${value}" style="max-width: 100%; height: auto; margin-top: 10px; ${value ? '' : 'display: none;'}">
+            </div>
+            <input type="hidden" class="image-data" value="${value}">
+        `;
+
+        const dropzone = wrapper.querySelector('.image-dropzone');
+        const fileInput = wrapper.querySelector('input[type="file"]');
+        const imgPreview = wrapper.querySelector('img');
+        const hiddenInput = wrapper.querySelector('.image-data');
+        const dropzoneText = wrapper.querySelector('.dropzone-text');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        const handleFile = (file) => {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imgPreview.src = e.target.result;
+                    imgPreview.style.display = 'block';
+                    hiddenInput.value = e.target.result;
+                    dropzoneText.textContent = '사진이 선택되었습니다 (클릭하여 변경)';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--accent-color)';
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.style.borderColor = 'var(--border-color)';
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--border-color)';
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        if (value) {
+            dropzoneText.textContent = '사진이 선택되었습니다 (클릭하여 변경)';
+        }
+    } else {
+        wrapper.innerHTML = `
+            <button type="button" class="btn-remove-block">X</button>
+            <span class="badge" style="background:#444; margin-bottom:5px; display:inline-block;">${type.toUpperCase()}</span>
+            <textarea rows="${type === 'text' ? 4 : 6}" style="${type === 'code' ? 'font-family:Consolas, monospace;' : ''}" placeholder="${type === 'text' ? '내용을 입력하세요' : '// 코드를 입력하세요'}">${value}</textarea>
+        `;
+    }
+
     wrapper.querySelector('.btn-remove-block').addEventListener('click', () => wrapper.remove());
     editorBlocksContainer.appendChild(wrapper);
 }
 
 document.getElementById('btn-add-text-block').addEventListener('click', () => createBlockElement('text'));
 document.getElementById('btn-add-code-block').addEventListener('click', () => createBlockElement('code'));
+document.getElementById('btn-add-image-block').addEventListener('click', () => createBlockElement('image'));
 
 // 정렬 버튼 이벤트
 document.getElementById('btn-sort-latest').addEventListener('click', () => {
@@ -323,11 +387,18 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
     const categoryName = currentCategories.find(c => c.id === categoryId)?.name;
     const blockElements = editorBlocksContainer.querySelectorAll('.block-item');
     const blocks = [];
+
     blockElements.forEach(el => {
         const type = el.dataset.type;
-        const value = el.querySelector('textarea').value;
+        let value = '';
+        if (type === 'image') {
+            value = el.querySelector('.image-data').value;
+        } else {
+            value = el.querySelector('textarea').value;
+        }
         if (value.trim()) blocks.push({ type, value });
     });
+
     if (blocks.length === 0) return alert('최소 하나의 본문 블록 내용을 채워주세요.');
     const postData = { title, categoryId, categoryName, blocks, updatedAt: new Date() };
     try {
