@@ -153,7 +153,6 @@ async function loadPosts() {
 
         const card = document.createElement('div');
         card.className = 'post-card';
-        // 조회수 추가
         card.innerHTML = `
             <h3>${post.title}</h3>
             <p>${summary}</p>
@@ -262,12 +261,39 @@ document.getElementById('logo').addEventListener('click', () => {
     initBlog();
 });
 
-// 카테고리 클릭 시 초기화 로직 보강
+// 카테고리 클릭 시 초기화 로직 및 수정/삭제 기능
 document.getElementById('category-list').addEventListener('click', async (e) => {
-    // ... 기존 로직 ...
     const li = e.target.closest('li');
     if (!li) return;
-    // ... 카테고리 로직 ...
+
+    // [추가] 카테고리 수정 기능
+    if (e.target.closest('.btn-edit-cat')) {
+        e.stopPropagation();
+        const catId = li.dataset.id;
+        const currentName = currentCategories.find(c => c.id === catId)?.name;
+        const newName = prompt('카테고리 이름을 수정하세요:', currentName);
+        if (newName && newName !== currentName) {
+            await updateDoc(doc(db, "categories", catId), { name: newName });
+            initBlog();
+        }
+        return;
+    }
+
+    // [추가] 카테고리 삭제 기능
+    if (e.target.closest('.btn-delete-cat')) {
+        e.stopPropagation();
+        if (!confirm('정말 삭제하시겠습니까? 이 카테고리에 포함된 글은 카테고리 정보가 사라집니다.')) return;
+        const catId = li.dataset.id;
+        await deleteDoc(doc(db, "categories", catId));
+        if (selectedCategory === catId) {
+            selectedCategory = null;
+            document.getElementById('current-category-title').textContent = '모든 글 보기';
+        }
+        initBlog();
+        return;
+    }
+
+    // 기본 카테고리 선택 로직
     if (li.id === 'cat-all') selectedCategory = null;
     else selectedCategory = li.dataset.id;
 
@@ -280,7 +306,6 @@ document.getElementById('category-list').addEventListener('click', async (e) => 
     loadPosts();
 });
 
-// 나머지는 기존과 동일하므로 생략하지 않고 유지합니다.
 document.getElementById('btn-write').addEventListener('click', () => {
     if (currentCategories.length === 0) return alert('카테고리를 최소 1개 이상 생성해야 글 작성이 활성화됩니다.');
     currentPostId = null;
