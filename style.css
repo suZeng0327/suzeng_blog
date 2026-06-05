@@ -1,9 +1,9 @@
 /*2d2d34*/
 /* 전역 변수 설정 */
 :root {
-    --bg-color: #2d2d34;
+    --bg-color: #000000;
     --card-bg: #000000;
-    --border-color: #000000;
+    --border-color: #2d2d34;
     --text-main: #ffffff;
     --text-muted: #a0a0a5;
     /* 포인트 컬러 변경 (치지직 로고 형광 컬러 계열 반영) */
