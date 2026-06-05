@@ -32,19 +32,30 @@ const views = {
     write: document.getElementById('view-write')
 };
 
-// [요구사항 2] 전체 사이트 방문수 업데이트 함수
+// [요구사항 3] 전체 사이트 방문수 업데이트 함수 수정
 async function updateVisitCount() {
     const visitRef = doc(db, "stats", "visits");
     try {
+        // 방문수 카운트 1 증가 시도
         await updateDoc(visitRef, { count: increment(1) });
     } catch (e) {
-        // 문서가 없으면 최초 생성
-        await setDoc(visitRef, { count: 1 });
+        try {
+            // 문서가 없거나 비로그인 차단 시 최초 생성 시도
+            await setDoc(visitRef, { count: 1 });
+        } catch (setErr) {
+            console.error("방문수 업데이트 권한 제한됨:", setErr);
+        }
     }
-    const snap = await getDoc(visitRef);
-    if (snap.exists()) {
-        const countElem = document.getElementById('site-visit-count');
-        if (countElem) countElem.textContent = `사이트 방문수: ${snap.data().count}회`;
+    
+    // [요구사항 3] 업데이트 에러 여부와 관계없이 무조건 데이터를 읽어와 표시하도록 보장
+    try {
+        const snap = await getDoc(visitRef);
+        if (snap.exists()) {
+            const countElem = document.getElementById('site-visit-count');
+            if (countElem) countElem.textContent = `사이트 방문수: ${snap.data().count}회`;
+        }
+    } catch (getErr) {
+        console.error("방문수 데이터 불러오기 실패:", getErr);
     }
 }
 
@@ -173,53 +184,61 @@ async function loadPosts() {
     }
 }
 
-// 상세 보기 전환
+// 상세 보기 전환 및 조회수 처리 수정
 async function showPostDetail(postId) {
     const docRef = doc(db, "posts", postId);
 
-    // [요구사항 1] 개별 글 조회수 1 증가
-    await updateDoc(docRef, { views: increment(1) });
+    // [요구사항 1, 2] 개별 글 조회수 1 증가 시도 (비로그인 권한 에러가 나더라도 상세 페이지 이동이 막히지 않도록 완전히 분리)
+    try {
+        await updateDoc(docRef, { views: increment(1) });
+    } catch (e) {
+        console.error("조회수 증가 실패 (권한 없음 등):", e);
+    }
 
-    // 증가된 데이터를 포함하여 문서 다시 가져오기
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) return alert('존재하지 않는 게시글입니다.');
+    // [요구사항 1] 예외 처리로 감싸 에러 발생과 관계없이 글 내용 조회가 가능하도록 보장
+    try {
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) return alert('존재하지 않는 게시글입니다.');
 
-    const post = docSnap.data();
-    currentPostId = postId;
+        const post = docSnap.data();
+        currentPostId = postId;
 
-    document.getElementById('detail-title').textContent = post.title;
-    document.getElementById('detail-category').textContent = post.categoryName;
-    document.getElementById('detail-date').textContent = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString() : '';
+        document.getElementById('detail-title').textContent = post.title;
+        document.getElementById('detail-category').textContent = post.categoryName;
+        document.getElementById('detail-date').textContent = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString() : '';
 
-    // [요구사항 1] 화면에 조회수 텍스트 렌더링
-    const viewsCount = post.views || 0;
-    document.getElementById('detail-views').textContent = `조회수: ${viewsCount}`;
+        // [요구사항 1] 화면에 조회수 텍스트 안전하게 렌더링
+        const viewsCount = post.views || 0;
+        document.getElementById('detail-views').textContent = `조회수: ${viewsCount}`;
 
-    const contentContainer = document.getElementById('detail-content');
-    contentContainer.innerHTML = '';
+        const contentContainer = document.getElementById('detail-content');
+        contentContainer.innerHTML = '';
 
-    // 블록 순회 정적 HTML 빌드
-    post.blocks.forEach(block => {
-        if (block.type === 'text') {
-            const p = document.createElement('p');
-            p.textContent = block.value;
-            contentContainer.appendChild(p);
-        } else if (block.type === 'code') {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'code-block-wrapper';
-            wrapper.innerHTML = `
-                <button class="btn-copy">복사</button>
-                <pre class="language-javascript"><code class="language-javascript">${escapeHtml(block.value)}</code></pre>
-            `;
-            // 복사 이벤트 바인딩
-            wrapper.querySelector('.btn-copy').addEventListener('click', () => copyToClipboard(block.value, wrapper.querySelector('.btn-copy')));
-            contentContainer.appendChild(wrapper);
-        }
-    });
+        // 블록 순회 정적 HTML 빌드
+        post.blocks.forEach(block => {
+            if (block.type === 'text') {
+                const p = document.createElement('p');
+                p.textContent = block.value;
+                contentContainer.appendChild(p);
+            } else if (block.type === 'code') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-block-wrapper';
+                wrapper.innerHTML = `
+                    <button class="btn-copy">복사</button>
+                    <pre class="language-javascript"><code class="language-javascript">${escapeHtml(block.value)}</code></pre>
+                `;
+                // 복사 이벤트 바인딩
+                wrapper.querySelector('.btn-copy').addEventListener('click', () => copyToClipboard(block.value, wrapper.querySelector('.btn-copy')));
+                contentContainer.appendChild(wrapper);
+            }
+        });
 
-    // Prism 문법 하이라이팅 유발 트리거
-    Prism.highlightAll();
-    switchView('detail');
+        // Prism 문법 하이라이팅 유발 트리거
+        Prism.highlightAll();
+        switchView('detail');
+    } catch (err) {
+        alert('게시글을 불러오는 중 에러가 발생했습니다: ' + err.message);
+    }
 }
 
 // --- 블록식 유연 에디터 코어 기능 ---
