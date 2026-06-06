@@ -20,7 +20,7 @@ let currentCategories = [];
 let isAdmin = false;
 let selectedCategory = null;
 let currentPostId = null;
-let currentSortMode = 'latest';
+let currentSortMode = 'latest'; // 정렬 상태 변수
 
 const views = {
     home: document.getElementById('view-home'),
@@ -28,6 +28,7 @@ const views = {
     write: document.getElementById('view-write')
 };
 
+// [방문수] 규칙과 필드명(count) 일치
 async function updateVisitCount() {
     const visitRef = doc(db, "stats", "visits");
     try {
@@ -130,6 +131,7 @@ function updateCategoryDropdown() {
     });
 }
 
+// 텍스트 블록의 HTML 태그를 제거하고 요약만 보여주는 함수
 function getSummary(htmlString) {
     const tmp = document.createElement("DIV");
     tmp.innerHTML = htmlString;
@@ -137,6 +139,7 @@ function getSummary(htmlString) {
     return text.length > 120 ? text.substring(0, 120) + '...' : text;
 }
 
+// [정렬 기능 통합] 정렬 모드에 따른 쿼리
 async function loadPosts() {
     const sortField = currentSortMode === 'popular' ? 'views' : 'createdAt';
     const q = query(collection(db, "posts"), orderBy(sortField, "desc"));
@@ -195,7 +198,7 @@ async function showPostDetail(postId) {
         document.getElementById('detail-title').textContent = post.title;
         document.getElementById('detail-category').textContent = post.categoryName;
         document.getElementById('detail-date').textContent = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString() : '';
-        document.getElementById('detail-views').textContent = `조회수: ${(post.views || 0) + 1}`;
+        document.getElementById('detail-views').textContent = `조회수: ${(post.views || 0) + 1}`; // 실시간 반영
 
         const contentContainer = document.getElementById('detail-content');
         contentContainer.innerHTML = '';
@@ -203,11 +206,12 @@ async function showPostDetail(postId) {
         post.blocks.forEach(block => {
             if (block.type === 'text') {
                 const div = document.createElement('div');
-                div.innerHTML = block.value; 
+                div.innerHTML = block.value; // 기존 textarea의 textContent에서 innerHTML로 변경하여 태그 렌더링 지원
                 div.style.marginBottom = '15px';
                 div.style.whiteSpace = 'pre-wrap';
                 div.style.fontSize = '1.1rem';
 
+                // 삽입된 하이퍼링크 스타일링
                 const links = div.querySelectorAll('a');
                 links.forEach(a => {
                     a.style.color = '#00c77e';
@@ -273,16 +277,20 @@ function createBlockElement(type, value = '') {
                         const MAX_WIDTH = 800;
                         let width = img.width;
                         let height = img.height;
+
                         if (width > MAX_WIDTH) {
                             height = Math.round((height * MAX_WIDTH) / width);
                             width = MAX_WIDTH;
                         }
+
                         const canvas = document.createElement('canvas');
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
+
                         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
                         imgPreview.src = compressedDataUrl;
                         imgPreview.style.display = 'block';
                         hiddenInput.value = compressedDataUrl;
@@ -294,12 +302,28 @@ function createBlockElement(type, value = '') {
             }
         };
 
-        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
-        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = 'var(--accent-color)'; });
-        dropzone.addEventListener('dragleave', () => dropzone.style.borderColor = 'var(--border-color)');
-        dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.style.borderColor = 'var(--border-color)'; handleFile(e.dataTransfer.files[0]); });
-        if (value) dropzoneText.textContent = '사진이 선택되었습니다 (클릭하여 변경)';
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
 
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--accent-color)';
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.style.borderColor = 'var(--border-color)';
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--border-color)';
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        if (value) {
+            dropzoneText.textContent = '사진이 선택되었습니다 (클릭하여 변경)';
+        }
     } else if (type === 'text') {
         wrapper.innerHTML = `
             <button type="button" class="btn-remove-block">X</button>
@@ -314,7 +338,12 @@ function createBlockElement(type, value = '') {
         `;
     }
 
-    wrapper.querySelector('.btn-remove-block').addEventListener('click', () => { if (confirm('진짜 삭제하겠습니까?')) wrapper.remove(); });
+    wrapper.querySelector('.btn-remove-block').addEventListener('click', () => {
+        if (confirm('진짜 삭제하겠습니까?')) {
+            wrapper.remove();
+        }
+    });
+
     editorBlocksContainer.appendChild(wrapper);
 }
 
@@ -322,21 +351,83 @@ document.getElementById('btn-add-text-block').addEventListener('click', () => cr
 document.getElementById('btn-add-code-block').addEventListener('click', () => createBlockElement('code'));
 document.getElementById('btn-add-image-block').addEventListener('click', () => createBlockElement('image'));
 
-document.getElementById('btn-sort-latest').addEventListener('click', () => { currentSortMode = 'latest'; document.getElementById('btn-sort-latest').className = 'btn btn-primary'; document.getElementById('btn-sort-popular').className = 'btn btn-secondary'; loadPosts(); });
-document.getElementById('btn-sort-popular').addEventListener('click', () => { currentSortMode = 'popular'; document.getElementById('btn-sort-popular').className = 'btn btn-primary'; document.getElementById('btn-sort-latest').className = 'btn btn-secondary'; loadPosts(); });
+// 정렬 버튼 이벤트
+document.getElementById('btn-sort-latest').addEventListener('click', () => {
+    currentSortMode = 'latest';
+    document.getElementById('btn-sort-latest').className = 'btn btn-primary';
+    document.getElementById('btn-sort-popular').className = 'btn btn-secondary';
+    loadPosts();
+});
 
-document.getElementById('logo').addEventListener('click', () => { selectedCategory = null; currentSortMode = 'latest'; document.getElementById('btn-sort-latest').className = 'btn btn-primary'; document.getElementById('btn-sort-popular').className = 'btn btn-secondary'; document.getElementById('current-category-title').textContent = '모든 글 보기'; switchView('home'); initBlog(); });
+document.getElementById('btn-sort-popular').addEventListener('click', () => {
+    currentSortMode = 'popular';
+    document.getElementById('btn-sort-popular').className = 'btn btn-primary';
+    document.getElementById('btn-sort-latest').className = 'btn btn-secondary';
+    loadPosts();
+});
 
+// 로고 클릭 시 초기화
+document.getElementById('logo').addEventListener('click', () => {
+    selectedCategory = null;
+    currentSortMode = 'latest';
+    document.getElementById('btn-sort-latest').className = 'btn btn-primary';
+    document.getElementById('btn-sort-popular').className = 'btn btn-secondary';
+    document.getElementById('current-category-title').textContent = '모든 글 보기';
+    switchView('home');
+    initBlog();
+});
+
+// 카테고리 클릭 시 초기화 로직 및 수정/삭제 기능
 document.getElementById('category-list').addEventListener('click', async (e) => {
     const li = e.target.closest('li');
     if (!li) return;
-    if (e.target.closest('.btn-edit-cat')) { e.stopPropagation(); const catId = li.dataset.id; const currentName = currentCategories.find(c => c.id === catId)?.name; const newName = prompt('카테고리 이름을 수정하세요:', currentName); if (newName && newName !== currentName) { await updateDoc(doc(db, "categories", catId), { name: newName }); initBlog(); } return; }
-    if (e.target.closest('.btn-delete-cat')) { e.stopPropagation(); if (!confirm('정말 삭제하시겠습니까? 이 카테고리에 포함된 글은 카테고리 정보가 사라집니다.')) return; const catId = li.dataset.id; await deleteDoc(doc(db, "categories", catId)); if (selectedCategory === catId) { selectedCategory = null; document.getElementById('current-category-title').textContent = '모든 글 보기'; } initBlog(); return; }
-    if (li.id === 'cat-all') selectedCategory = null; else selectedCategory = li.dataset.id;
-    currentSortMode = 'latest'; document.getElementById('btn-sort-latest').className = 'btn btn-primary'; document.getElementById('btn-sort-popular').className = 'btn btn-secondary'; document.getElementById('current-category-title').textContent = li.querySelector('span')?.textContent || '모든 글 보기'; renderCategories(); loadPosts();
+
+    if (e.target.closest('.btn-edit-cat')) {
+        e.stopPropagation();
+        const catId = li.dataset.id;
+        const currentName = currentCategories.find(c => c.id === catId)?.name;
+        const newName = prompt('카테고리 이름을 수정하세요:', currentName);
+        if (newName && newName !== currentName) {
+            await updateDoc(doc(db, "categories", catId), { name: newName });
+            initBlog();
+        }
+        return;
+    }
+
+    if (e.target.closest('.btn-delete-cat')) {
+        e.stopPropagation();
+        if (!confirm('정말 삭제하시겠습니까? 이 카테고리에 포함된 글은 카테고리 정보가 사라집니다.')) return;
+        const catId = li.dataset.id;
+        await deleteDoc(doc(db, "categories", catId));
+        if (selectedCategory === catId) {
+            selectedCategory = null;
+            document.getElementById('current-category-title').textContent = '모든 글 보기';
+        }
+        initBlog();
+        return;
+    }
+
+    if (li.id === 'cat-all') selectedCategory = null;
+    else selectedCategory = li.dataset.id;
+
+    currentSortMode = 'latest';
+    document.getElementById('btn-sort-latest').className = 'btn btn-primary';
+    document.getElementById('btn-sort-popular').className = 'btn btn-secondary';
+
+    document.getElementById('current-category-title').textContent = li.querySelector('span')?.textContent || '모든 글 보기';
+    renderCategories();
+    loadPosts();
 });
 
-document.getElementById('btn-write').addEventListener('click', () => { if (currentCategories.length === 0) return alert('카테고리를 최소 1개 이상 생성해야 글 작성이 활성화됩니다.'); currentPostId = null; document.getElementById('post-form').reset(); editorBlocksContainer.innerHTML = ''; document.getElementById('write-view-title').textContent = "새 글 작성하기"; createBlockElement('text'); switchView('write'); });
+document.getElementById('btn-write').addEventListener('click', () => {
+    if (currentCategories.length === 0) return alert('카테고리를 최소 1개 이상 생성해야 글 작성이 활성화됩니다.');
+    currentPostId = null;
+    document.getElementById('post-form').reset();
+    editorBlocksContainer.innerHTML = '';
+    document.getElementById('write-view-title').textContent = "새 글 작성하기";
+    createBlockElement('text');
+    switchView('write');
+});
 
 document.getElementById('post-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -345,17 +436,37 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
     const categoryName = currentCategories.find(c => c.id === categoryId)?.name;
     const blockElements = editorBlocksContainer.querySelectorAll('.block-item');
     const blocks = [];
+
     blockElements.forEach(el => {
         const type = el.dataset.type;
-        let value = type === 'image' ? el.querySelector('.image-data').value : (type === 'text' ? el.querySelector('.editor-text-content').innerHTML : el.querySelector('textarea').value);
-        if (value.replace(/<br>/g, "").trim() !== '') blocks.push({ type, value });
+        let value = '';
+        if (type === 'image') {
+            value = el.querySelector('.image-data').value;
+        } else if (type === 'text') {
+            value = el.querySelector('.editor-text-content').innerHTML; // textarea의 value 대신 innerHTML 저장
+        } else {
+            value = el.querySelector('textarea').value;
+        }
+
+        // 빈 태그만 있는 경우도 걸러내기 위함
+        const cleanValue = value.replace(/<br>/g, "").trim();
+        if (cleanValue !== '') blocks.push({ type, value });
     });
+
     if (blocks.length === 0) return alert('최소 하나의 본문 블록 내용을 채워주세요.');
     const postData = { title, categoryId, categoryName, blocks, updatedAt: new Date() };
     try {
-        if (currentPostId) { await updateDoc(doc(db, "posts", currentPostId), postData); alert('성공적으로 수정되었습니다.'); }
-        else { postData.createdAt = new Date(); postData.views = 0; await addDoc(collection(db, "posts"), postData); alert('글이 정상적으로 등록되었습니다.'); }
-        switchView('home'); initBlog();
+        if (currentPostId) {
+            await updateDoc(doc(db, "posts", currentPostId), postData);
+            alert('성공적으로 수정되었습니다.');
+        } else {
+            postData.createdAt = new Date();
+            postData.views = 0;
+            await addDoc(collection(db, "posts"), postData);
+            alert('글이 정상적으로 등록되었습니다.');
+        }
+        switchView('home');
+        initBlog();
     } catch (err) { alert('저장 중 에러 발생: ' + err.message); }
 });
 
@@ -371,92 +482,151 @@ document.getElementById('btn-edit-post').addEventListener('click', async () => {
     switchView('write');
 });
 
-document.getElementById('btn-delete-post').addEventListener('click', async () => { if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return; await deleteDoc(doc(db, "posts", currentPostId)); alert('삭제되었습니다.'); switchView('home'); initBlog(); });
-document.getElementById('btn-add-category').addEventListener('click', async () => { const catName = prompt('새로운 카테고리 이름을 입력해 주세요:'); if (!catName) return; await addDoc(collection(db, "categories"), { name: catName }); initBlog(); });
+document.getElementById('btn-delete-post').addEventListener('click', async () => {
+    if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
+    await deleteDoc(doc(db, "posts", currentPostId));
+    alert('삭제되었습니다.');
+    switchView('home');
+    initBlog();
+});
+
+document.getElementById('btn-add-category').addEventListener('click', async () => {
+    const catName = prompt('새로운 카테고리 이름을 입력해 주세요:');
+    if (!catName) return;
+    await addDoc(collection(db, "categories"), { name: catName });
+    initBlog();
+});
 
 function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-function copyToClipboard(text, buttonEl) { navigator.clipboard.writeText(text).then(() => { buttonEl.textContent = '복사 완료!'; setTimeout(() => buttonEl.textContent = '복사', 2000); }); }
-const backButtons = document.querySelectorAll('.btn-back'); backButtons.forEach(btn => btn.addEventListener('click', () => switchView('home')));
-const modal = document.getElementById('login-modal'); document.getElementById('btn-login-nav').addEventListener('click', () => modal.classList.remove('hidden')); document.getElementById('btn-close-modal').addEventListener('click', () => modal.classList.add('hidden'));
-document.getElementById('login-form').addEventListener('submit', async (e) => { e.preventDefault(); const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; try { await signInWithEmailAndPassword(auth, email, pass); modal.classList.add('hidden'); document.getElementById('login-form').reset(); } catch (err) { alert('인증 실패: ' + err.message); } });
+function copyToClipboard(text, buttonEl) {
+    navigator.clipboard.writeText(text).then(() => {
+        buttonEl.textContent = '복사 완료!';
+        setTimeout(() => buttonEl.textContent = '복사', 2000);
+    });
+}
+const backButtons = document.querySelectorAll('.btn-back');
+backButtons.forEach(btn => btn.addEventListener('click', () => switchView('home')));
+const modal = document.getElementById('login-modal');
+document.getElementById('btn-login-nav').addEventListener('click', () => modal.classList.remove('hidden'));
+document.getElementById('btn-close-modal').addEventListener('click', () => modal.classList.add('hidden'));
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-password').value;
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        modal.classList.add('hidden');
+        document.getElementById('login-form').reset();
+    } catch (err) { alert('인증 실패: ' + err.message); }
+});
 document.getElementById('btn-logout-nav').addEventListener('click', () => { signOut(auth).then(() => alert('로그아웃 되었습니다.')); });
 
 /* =========================================================================
-   [최고급 개발자 수정] 완벽한 스타일 병합 및 토글 기능
+   [수정됨] 텍스트 서식 툴바 기능 (색상 토글 및 세밀한 폰트 크기)
 ========================================================================= */
 
-// 1. 기본 서식 (굵게, 취소선)
+// 1. 굵게, 취소선 등 기존 기능
 document.getElementById('btn-format-bold')?.addEventListener('mousedown', (e) => { e.preventDefault(); document.execCommand('bold', false, null); });
 document.getElementById('btn-format-strike')?.addEventListener('mousedown', (e) => { e.preventDefault(); document.execCommand('strikeThrough', false, null); });
 
-// 공통: 현재 선택 영역의 텍스트 노드 또는 부모 요소를 반환하는 유틸리티
-function getActiveElement() {
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return null;
-    let node = selection.focusNode;
-    return (node.nodeType === 3 ? node.parentNode : node);
-}
-
-// 공통: 선택 영역을 감싸는 span을 생성하거나 반환하는 유틸리티
-function getOrWrapSpan() {
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return null;
-    const range = selection.getRangeAt(0);
-    
-    // 이미 span 안에 있다면 그 span 반환
-    if (range.commonAncestorContainer.nodeName === 'SPAN') return range.commonAncestorContainer;
-    if (range.commonAncestorContainer.parentNode?.nodeName === 'SPAN') return range.commonAncestorContainer.parentNode;
-
-    // span으로 감싸기
-    const span = document.createElement('span');
-    try {
-        range.surroundContents(span);
-        return span;
-    } catch (e) {
-        // range가 여러 노드에 걸쳐 있으면 단순 wrap 불가, insertNode 방식 사용
-        const fragment = range.extractContents();
-        span.appendChild(fragment);
-        range.insertNode(span);
-        return span;
-    }
-}
-
-// 2. 색상 토글 기능 (스타일 속성만 제어하여 병합)
+// 2. 빨간색 토글 기능
 document.getElementById('btn-format-red')?.addEventListener('mousedown', (e) => {
     e.preventDefault();
-    const el = getOrWrapSpan();
-    if (!el) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
 
-    const style = window.getComputedStyle(el);
-    const currentColor = style.color;
-    // 빨간색 계열(rgb(255, 82, 82) 등)인지 확인
-    const isRed = currentColor === 'rgb(255, 82, 82)' || currentColor === 'red' || currentColor === 'rgb(255, 0, 0)';
+    const range = selection.getRangeAt(0);
+
+    // 선택 영역이 단일 빨간색 span 안에 완전히 포함되어 있는지 확인
+    const parentElement = range.commonAncestorContainer.nodeType === 3
+        ? range.commonAncestorContainer.parentElement
+        : range.commonAncestorContainer;
+
+    const computedColor = window.getComputedStyle(parentElement).color;
+    // rgb(255, 82, 82) = #ff5252
+    const isRed = computedColor === 'rgb(255, 82, 82)' || computedColor === 'rgb(255, 0, 0)';
 
     if (isRed) {
-        el.style.color = ''; // 스타일 제거 (병합 유지)
+        // 이미 빨간색 → 색상 제거: 선택 범위를 plain text로 교체
+        const text = range.toString();
+        const textNode = document.createTextNode(text);
+        range.deleteContents();
+        range.insertNode(textNode);
+        // 새 textNode 선택 상태 유지
+        const newRange = document.createRange();
+        newRange.selectNode(textNode);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
     } else {
-        el.style.color = '#ff5252'; // 빨간색 적용 (병합 유지)
+        // 빨간색 아님 → 빨간색 span으로 감싸기
+        const selectedText = range.toString();
+        if (selectedText.length === 0) return;
+        const span = document.createElement('span');
+        span.style.color = '#ff5252';
+        span.textContent = selectedText;
+        range.deleteContents();
+        range.insertNode(span);
+        // span 선택 상태 유지
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
     }
 });
 
-// 3. 폰트 크기 변경 기능 (style 속성만 수정)
-const sizeSelect = document.getElementById('select-format-size');
-if (sizeSelect) {
-    sizeSelect.addEventListener('change', (e) => {
-        const size = e.target.value;
-        if (!size) return;
-
-        const el = getOrWrapSpan();
-        if (el) {
-            el.style.fontSize = size + 'pt'; // fontSize만 업데이트 (병합 유지)
-        }
-        e.target.value = ""; 
-    });
-}
-
-// 4. 링크 기능
+// 3. 링크 기능
 document.getElementById('btn-format-link')?.addEventListener('mousedown', (e) => {
     e.preventDefault();
-    const url = prompt('연결할 링크 주소를 입력하세요:', 'https://');
-    if (url && url !== 'https://') document.execCommand('createLink', false, url);
+    const url = prompt('연결할 링크 주소를 입력하세요 (http:// 또는 https:// 포함):', 'https://');
+    if (url && url !== 'https://') {
+        document.execCommand('createLink', false, url);
+    }
 });
+
+// 4. 세밀한 폰트 크기 조절 (5pt ~ 100pt)
+// select에 포커스가 가면 contenteditable의 selection이 사라지므로,
+// mousedown 시점에 selection을 저장해두고 change 때 복원하여 적용한다.
+let savedRangeForSize = null;
+
+const sizeSelect = document.getElementById('select-format-size');
+if (sizeSelect) {
+    sizeSelect.addEventListener('mousedown', () => {
+        // select 클릭 직전, contenteditable 안의 현재 selection을 저장
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+            savedRangeForSize = selection.getRangeAt(0).cloneRange();
+        } else {
+            savedRangeForSize = null;
+        }
+    });
+
+    sizeSelect.addEventListener('change', (e) => {
+        const size = e.target.value;
+        e.target.value = ""; // 선택 후 초기화
+
+        if (!size || !savedRangeForSize) return;
+
+        const selectedText = savedRangeForSize.toString();
+        if (selectedText.length === 0) return;
+
+        // 저장해둔 range를 복원하고 span으로 교체
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(savedRangeForSize);
+
+        const span = document.createElement('span');
+        span.style.fontSize = size;
+        span.textContent = selectedText;
+        savedRangeForSize.deleteContents();
+        savedRangeForSize.insertNode(span);
+
+        // span 다음에 커서 위치
+        const newRange = document.createRange();
+        newRange.setStartAfter(span);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+
+        savedRangeForSize = null;
+    });
+}
