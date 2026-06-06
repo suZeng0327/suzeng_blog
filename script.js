@@ -131,6 +131,14 @@ function updateCategoryDropdown() {
     });
 }
 
+// 텍스트 블록의 HTML 태그를 제거하고 요약만 보여주는 함수
+function getSummary(htmlString) {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = htmlString;
+    const text = tmp.textContent || tmp.innerText || "";
+    return text.length > 120 ? text.substring(0, 120) + '...' : text;
+}
+
 // [정렬 기능 통합] 정렬 모드에 따른 쿼리
 async function loadPosts() {
     const sortField = currentSortMode === 'popular' ? 'views' : 'createdAt';
@@ -148,7 +156,7 @@ async function loadPosts() {
         filteredCount++;
 
         const firstTextBlock = post.blocks.find(b => b.type === 'text');
-        const summary = firstTextBlock ? firstTextBlock.value.substring(0, 120) + '...' : '내용 없음';
+        const summary = firstTextBlock ? getSummary(firstTextBlock.value) : '내용 없음';
         const dateStr = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString() : '';
 
         const card = document.createElement('div');
@@ -197,9 +205,21 @@ async function showPostDetail(postId) {
 
         post.blocks.forEach(block => {
             if (block.type === 'text') {
-                const p = document.createElement('p');
-                p.textContent = block.value;
-                contentContainer.appendChild(p);
+                const div = document.createElement('div');
+                div.innerHTML = block.value; // 기존 textarea의 textContent에서 innerHTML로 변경하여 태그 렌더링 지원
+                div.style.marginBottom = '15px';
+                div.style.whiteSpace = 'pre-wrap';
+                div.style.fontSize = '1.1rem';
+
+                // 삽입된 하이퍼링크 스타일링
+                const links = div.querySelectorAll('a');
+                links.forEach(a => {
+                    a.style.color = '#00c77e';
+                    a.style.textDecoration = 'underline';
+                    a.target = '_blank';
+                });
+
+                contentContainer.appendChild(div);
             } else if (block.type === 'code') {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'code-block-wrapper';
@@ -252,10 +272,9 @@ function createBlockElement(type, value = '') {
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    // 이미지 리사이징(압축) 로직 추가
                     const img = new Image();
                     img.onload = () => {
-                        const MAX_WIDTH = 800; // 최대 너비 지정
+                        const MAX_WIDTH = 800;
                         let width = img.width;
                         let height = img.height;
 
@@ -270,7 +289,6 @@ function createBlockElement(type, value = '') {
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // JPEG 형식으로 화질 80%로 압축하여 크기 대폭 감소
                         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
                         imgPreview.src = compressedDataUrl;
@@ -306,15 +324,22 @@ function createBlockElement(type, value = '') {
         if (value) {
             dropzoneText.textContent = '사진이 선택되었습니다 (클릭하여 변경)';
         }
-    } else {
+    } else if (type === 'text') {
+        // [수정점] 서식 지원을 위해 textarea 대신 div contenteditable 사용 (기존 CSS 디자인 완벽 승계)
         wrapper.innerHTML = `
             <button type="button" class="btn-remove-block">X</button>
             <span class="badge" style="background:#444; margin-bottom:5px; display:inline-block;">${type.toUpperCase()}</span>
-            <textarea rows="${type === 'text' ? 4 : 6}" style="${type === 'code' ? 'font-family:Consolas, monospace;' : ''}" placeholder="${type === 'text' ? '내용을 입력하세요' : '// 코드를 입력하세요'}">${value}</textarea>
+            <div class="editor-text-content" contenteditable="true" style="width: 100%; min-height: 100px; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 1rem; outline: none; line-height: 1.6; overflow-y: auto;">${value}</div>
+        `;
+    } else {
+        // Code Block
+        wrapper.innerHTML = `
+            <button type="button" class="btn-remove-block">X</button>
+            <span class="badge" style="background:#444; margin-bottom:5px; display:inline-block;">${type.toUpperCase()}</span>
+            <textarea rows="6" style="font-family:Consolas, monospace;" placeholder="// 코드를 입력하세요">${value}</textarea>
         `;
     }
 
-    // 삭제 버튼 클릭 시 경고창 띄우도록 수정
     wrapper.querySelector('.btn-remove-block').addEventListener('click', () => {
         if (confirm('진짜 삭제하겠습니까?')) {
             wrapper.remove();
@@ -359,7 +384,6 @@ document.getElementById('category-list').addEventListener('click', async (e) => 
     const li = e.target.closest('li');
     if (!li) return;
 
-    // [추가] 카테고리 수정 기능
     if (e.target.closest('.btn-edit-cat')) {
         e.stopPropagation();
         const catId = li.dataset.id;
@@ -372,7 +396,6 @@ document.getElementById('category-list').addEventListener('click', async (e) => 
         return;
     }
 
-    // [추가] 카테고리 삭제 기능
     if (e.target.closest('.btn-delete-cat')) {
         e.stopPropagation();
         if (!confirm('정말 삭제하시겠습니까? 이 카테고리에 포함된 글은 카테고리 정보가 사라집니다.')) return;
@@ -386,7 +409,6 @@ document.getElementById('category-list').addEventListener('click', async (e) => 
         return;
     }
 
-    // 기본 카테고리 선택 로직
     if (li.id === 'cat-all') selectedCategory = null;
     else selectedCategory = li.dataset.id;
 
@@ -422,10 +444,15 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
         let value = '';
         if (type === 'image') {
             value = el.querySelector('.image-data').value;
+        } else if (type === 'text') {
+            value = el.querySelector('.editor-text-content').innerHTML; // textarea의 value 대신 innerHTML 저장
         } else {
             value = el.querySelector('textarea').value;
         }
-        if (value.trim()) blocks.push({ type, value });
+
+        // 빈 태그만 있는 경우도 걸러내기 위함
+        const cleanValue = value.replace(/<br>/g, "").trim();
+        if (cleanValue !== '') blocks.push({ type, value });
     });
 
     if (blocks.length === 0) return alert('최소 하나의 본문 블록 내용을 채워주세요.');
@@ -495,3 +522,45 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     } catch (err) { alert('인증 실패: ' + err.message); }
 });
 document.getElementById('btn-logout-nav').addEventListener('click', () => { signOut(auth).then(() => alert('로그아웃 되었습니다.')); });
+
+/* =========================================================================
+   [추가됨] 텍스트 서식 툴바 기능 (execCommand)
+========================================================================= */
+const formatButtons = [
+    { id: 'btn-format-bold', command: 'bold' },
+    { id: 'btn-format-red', command: 'foreColor', value: '#ff5252' },
+    { id: 'btn-format-strike', command: 'strikeThrough' }
+];
+
+formatButtons.forEach(btn => {
+    const el = document.getElementById(btn.id);
+    if (el) {
+        // click 대신 mousedown을 써서 텍스트 박스에서 커서(focus)를 잃지 않도록 함
+        el.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            document.execCommand(btn.command, false, btn.value || null);
+        });
+    }
+});
+
+const linkBtn = document.getElementById('btn-format-link');
+if (linkBtn) {
+    linkBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const url = prompt('연결할 링크 주소를 입력하세요 (http:// 또는 https:// 포함):', 'https://');
+        if (url && url !== 'https://') {
+            document.execCommand('createLink', false, url);
+        }
+    });
+}
+
+const sizeSelect = document.getElementById('select-format-size');
+if (sizeSelect) {
+    sizeSelect.addEventListener('change', (e) => {
+        const size = e.target.value;
+        if (size) {
+            document.execCommand('fontSize', false, size);
+            e.target.value = ""; // 선택 후 초기화
+        }
+    });
+}

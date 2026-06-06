@@ -66,7 +66,7 @@ body {
 
 .btn-secondary {
     background-color: var(--border-color);
-    color: var(--text-main);
+    color: #fff;
 }
 
 .btn-secondary:hover {
@@ -166,7 +166,6 @@ header {
     color: var(--accent-color);
 }
 
-/* [요구사항 3] 카테고리 이름 위치 상단 이동 및 여백 추가 */
 #current-category-title {
     margin-top: -5px;
     margin-bottom: 20px;
@@ -319,6 +318,33 @@ code[class*="language-"] {
     outline: none;
 }
 
+/* 에디터 툴바 스타일 추가 */
+.editor-toolbar {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: #1a1a1a;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    flex-wrap: wrap;
+}
+
+.editor-toolbar button,
+.editor-toolbar select {
+    padding: 5px 10px;
+    background: var(--border-color);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.editor-toolbar button:hover {
+    background: var(--accent-color);
+}
+
 .editor-blocks {
     display: flex;
     flex-direction: column;
@@ -400,14 +426,15 @@ code[class*="language-"] {
     }
 }
 
-/* 추가된 사진 블럭 및 본문 이미지 스타일 (크기에 딱 맞춰 들어가게 설정) */
 .image-dropzone {
     transition: border-color 0.2s, background-color 0.2s;
 }
+
 .image-dropzone:hover {
     border-color: var(--accent-color) !important;
     background-color: rgba(0, 199, 126, 0.05);
 }
+
 .detail-content img {
     max-width: 100%;
     height: auto;

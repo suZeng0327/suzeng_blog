@@ -87,8 +87,21 @@
                     
                     <div class="form-group">
                         <label>본문 내용</label>
+                        <div id="text-format-toolbar" class="editor-toolbar" style="display: flex; gap: 8px; margin-bottom: 10px; background: var(--bg-color); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); flex-wrap: wrap; align-items: center;">
+                            <button type="button" id="btn-format-bold" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.9rem;"><i class="fa-solid fa-bold"></i> 굵게</button>
+                            <button type="button" id="btn-format-red" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.9rem; color: #ff5252;"><i class="fa-solid fa-droplet"></i> 빨간색</button>
+                            <button type="button" id="btn-format-strike" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.9rem;"><i class="fa-solid fa-strikethrough"></i> 취소선</button>
+                            <button type="button" id="btn-format-link" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.9rem;"><i class="fa-solid fa-link"></i> 링크</button>
+                            <select id="select-format-size" style="padding: 4px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; outline: none; cursor: pointer;">
+                                <option value="" disabled selected>글자 크기</option>
+                                <option value="1">1 (아주 작게)</option>
+                                <option value="3">3 (보통)</option>
+                                <option value="5">5 (크게)</option>
+                                <option value="7">7 (아주 크게)</option>
+                            </select>
+                        </div>
                         <div id="editor-blocks" class="editor-blocks">
-                            </div>
+                        </div>
                         <div class="editor-controls">
                             <button type="button" id="btn-add-text-block" class="btn btn-secondary"><i class="fa-solid fa-align-left"></i> 텍스트 추가</button>
                             <button type="button" id="btn-add-code-block" class="btn btn-secondary"><i class="fa-solid fa-code"></i> 코드 추가</button>
