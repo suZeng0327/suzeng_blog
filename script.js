@@ -325,14 +325,12 @@ function createBlockElement(type, value = '') {
             dropzoneText.textContent = '사진이 선택되었습니다 (클릭하여 변경)';
         }
     } else if (type === 'text') {
-        // [수정점] 서식 지원을 위해 textarea 대신 div contenteditable 사용 (기존 CSS 디자인 완벽 승계)
         wrapper.innerHTML = `
             <button type="button" class="btn-remove-block">X</button>
             <span class="badge" style="background:#444; margin-bottom:5px; display:inline-block;">${type.toUpperCase()}</span>
             <div class="editor-text-content" contenteditable="true" style="width: 100%; min-height: 100px; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 1rem; outline: none; line-height: 1.6; overflow-y: auto;">${value}</div>
         `;
     } else {
-        // Code Block
         wrapper.innerHTML = `
             <button type="button" class="btn-remove-block">X</button>
             <span class="badge" style="background:#444; margin-bottom:5px; display:inline-block;">${type.toUpperCase()}</span>
@@ -524,42 +522,62 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 document.getElementById('btn-logout-nav').addEventListener('click', () => { signOut(auth).then(() => alert('로그아웃 되었습니다.')); });
 
 /* =========================================================================
-   [추가됨] 텍스트 서식 툴바 기능 (execCommand)
+   [수정됨] 텍스트 서식 툴바 기능 (색상 토글 및 세밀한 폰트 크기)
 ========================================================================= */
-const formatButtons = [
-    { id: 'btn-format-bold', command: 'bold' },
-    { id: 'btn-format-red', command: 'foreColor', value: '#ff5252' },
-    { id: 'btn-format-strike', command: 'strikeThrough' }
-];
 
-formatButtons.forEach(btn => {
-    const el = document.getElementById(btn.id);
-    if (el) {
-        // click 대신 mousedown을 써서 텍스트 박스에서 커서(focus)를 잃지 않도록 함
-        el.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            document.execCommand(btn.command, false, btn.value || null);
-        });
+// 1. 굵게, 취소선 등 기존 기능
+document.getElementById('btn-format-bold')?.addEventListener('mousedown', (e) => { e.preventDefault(); document.execCommand('bold', false, null); });
+document.getElementById('btn-format-strike')?.addEventListener('mousedown', (e) => { e.preventDefault(); document.execCommand('strikeThrough', false, null); });
+
+// 2. 빨간색 토글 기능
+document.getElementById('btn-format-red')?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        // 선택된 영역의 부모 요소 체크
+        const parentElement = range.commonAncestorContainer.nodeType === 3 ?
+            range.commonAncestorContainer.parentElement :
+            range.commonAncestorContainer;
+
+        const computedStyle = window.getComputedStyle(parentElement);
+        const isRed = computedStyle.color === 'rgb(255, 0, 0)' || computedStyle.color === 'red';
+
+        if (isRed) {
+            // 빨간색이면 기본 색상으로 복구 (inherit은 부모의 컬러를 따름)
+            document.execCommand('foreColor', false, 'inherit');
+        } else {
+            // 빨간색 아니면 빨간색으로 변경
+            document.execCommand('foreColor', false, '#ff5252');
+        }
     }
 });
 
-const linkBtn = document.getElementById('btn-format-link');
-if (linkBtn) {
-    linkBtn.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        const url = prompt('연결할 링크 주소를 입력하세요 (http:// 또는 https:// 포함):', 'https://');
-        if (url && url !== 'https://') {
-            document.execCommand('createLink', false, url);
-        }
-    });
-}
+// 3. 링크 기능
+document.getElementById('btn-format-link')?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const url = prompt('연결할 링크 주소를 입력하세요 (http:// 또는 https:// 포함):', 'https://');
+    if (url && url !== 'https://') {
+        document.execCommand('createLink', false, url);
+    }
+});
 
+// 4. 세밀한 폰트 크기 조절 (5pt ~ 100pt)
 const sizeSelect = document.getElementById('select-format-size');
 if (sizeSelect) {
     sizeSelect.addEventListener('change', (e) => {
         const size = e.target.value;
         if (size) {
-            document.execCommand('fontSize', false, size);
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const selectedText = range.toString();
+                if (selectedText.length > 0) {
+                    // execCommand(fontSize)는 1~7만 지원하므로 insertHTML을 사용하여 span 스타일 직접 삽입
+                    const span = `<span style="font-size: ${size}">${selectedText}</span>`;
+                    document.execCommand('insertHTML', false, span);
+                }
+            }
             e.target.value = ""; // 선택 후 초기화
         }
     });

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,38 +10,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
 </head>
+
 <body>
 
     <header>
         <div class="header-container">
             <h1 id="logo">suzeng_blog</h1>
             <nav>
-                <button id="btn-write" class="btn btn-primary admin-only hidden"><i class="fa-solid fa-pen"></i> 글쓰기</button>
+                <button id="btn-write" class="btn btn-primary admin-only hidden"><i class="fa-solid fa-pen"></i>
+                    글쓰기</button>
                 <button id="btn-login-nav" class="btn btn-secondary"><i class="fa-solid fa-lock"></i> 관리자 로그인</button>
-                <button id="btn-logout-nav" class="btn btn-secondary hidden"><i class="fa-solid fa-lock-open"></i> 로그아웃</button>
+                <button id="btn-logout-nav" class="btn btn-secondary hidden"><i class="fa-solid fa-lock-open"></i>
+                    로그아웃</button>
             </nav>
         </div>
     </header>
 
     <main class="container">
-        
+
         <section id="view-home" class="view">
             <div class="blog-layout">
                 <aside class="sidebar">
                     <div class="sidebar-header">
                         <h3>Categories</h3>
-                        <button id="btn-add-category" class="btn-icon admin-only hidden" title="카테고리 추가"><i class="fa-solid fa-plus"></i></button>
+                        <button id="btn-add-category" class="btn-icon admin-only hidden" title="카테고리 추가"><i
+                                class="fa-solid fa-plus"></i></button>
                     </div>
                     <ul id="category-list">
                     </ul>
-                    
-                    <div id="site-visit-count" style="margin-top: 30px; font-size: 0.9rem; color: var(--text-muted);">사이트 방문수: 0회</div>
+
+                    <div id="site-visit-count" style="margin-top: 30px; font-size: 0.9rem; color: var(--text-muted);">
+                        사이트 방문수: 0회</div>
                 </aside>
                 <section class="main-content">
                     <h2 id="current-category-title">모든 글 보기</h2>
                     <div id="sort-controls" style="margin-bottom: 20px;">
-                        <button id="btn-sort-latest" class="btn btn-primary" style="padding: 4px 10px; font-size: 0.8rem;">최신순</button>
-                        <button id="btn-sort-popular" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;">인기순</button>
+                        <button id="btn-sort-latest" class="btn btn-primary"
+                            style="padding: 4px 10px; font-size: 0.8rem;">최신순</button>
+                        <button id="btn-sort-popular" class="btn btn-secondary"
+                            style="padding: 4px 10px; font-size: 0.8rem;">인기순</button>
                     </div>
                     <div id="post-list" class="post-list">
                     </div>
@@ -60,8 +68,10 @@
                             <span id="detail-views" style="margin-left: 15px;">조회수: 0</span>
                         </span>
                         <div class="admin-controls admin-only hidden">
-                            <button id="btn-edit-post" class="btn-icon" title="수정"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button id="btn-delete-post" class="btn-icon delete" title="삭제"><i class="fa-solid fa-trash"></i></button>
+                            <button id="btn-edit-post" class="btn-icon" title="수정"><i
+                                    class="fa-solid fa-pen-to-square"></i></button>
+                            <button id="btn-delete-post" class="btn-icon delete" title="삭제"><i
+                                    class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 </div>
@@ -84,28 +94,133 @@
                         <label for="post-title">제목</label>
                         <input type="text" id="post-title" placeholder="제목을 입력하세요" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label>본문 내용</label>
-                        <div id="text-format-toolbar" class="editor-toolbar" style="display: flex; gap: 8px; margin-bottom: 10px; background: var(--bg-color); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); flex-wrap: wrap; align-items: center;">
-                            <button type="button" id="btn-format-bold" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.9rem;"><i class="fa-solid fa-bold"></i> 굵게</button>
-                            <button type="button" id="btn-format-red" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.9rem; color: #ff5252;"><i class="fa-solid fa-droplet"></i> 빨간색</button>
-                            <button type="button" id="btn-format-strike" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.9rem;"><i class="fa-solid fa-strikethrough"></i> 취소선</button>
-                            <button type="button" id="btn-format-link" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.9rem;"><i class="fa-solid fa-link"></i> 링크</button>
-                            <select id="select-format-size" style="padding: 4px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; outline: none; cursor: pointer;">
+                        <div id="text-format-toolbar" class="editor-toolbar"
+                            style="display: flex; gap: 8px; margin-bottom: 10px; background: var(--bg-color); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); flex-wrap: wrap; align-items: center;">
+                            <button type="button" id="btn-format-bold" class="btn btn-secondary"
+                                style="padding: 4px 10px; font-size: 0.9rem;"><i class="fa-solid fa-bold"></i>
+                                굵게</button>
+                            <button type="button" id="btn-format-red" class="btn btn-secondary"
+                                style="padding: 4px 10px; font-size: 0.9rem; color: #ff5252;"><i
+                                    class="fa-solid fa-droplet"></i> 빨간색</button>
+                            <button type="button" id="btn-format-strike" class="btn btn-secondary"
+                                style="padding: 4px 10px; font-size: 0.9rem;"><i class="fa-solid fa-strikethrough"></i>
+                                취소선</button>
+                            <button type="button" id="btn-format-link" class="btn btn-secondary"
+                                style="padding: 4px 10px; font-size: 0.9rem;"><i class="fa-solid fa-link"></i>
+                                링크</button>
+                            <select id="select-format-size"
+                                style="padding: 4px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; outline: none; cursor: pointer;">
                                 <option value="" disabled selected>글자 크기</option>
-                                <option value="1">1 (아주 작게)</option>
-                                <option value="3">3 (보통)</option>
-                                <option value="5">5 (크게)</option>
-                                <option value="7">7 (아주 크게)</option>
+                                <option value="5pt">5pt</option>
+                                <option value="6pt">6pt</option>
+                                <option value="7pt">7pt</option>
+                                <option value="8pt">8pt</option>
+                                <option value="9pt">9pt</option>
+                                <option value="10pt">10pt</option>
+                                <option value="11pt">11pt</option>
+                                <option value="12pt">12pt</option>
+                                <option value="13pt">13pt</option>
+                                <option value="14pt">14pt</option>
+                                <option value="15pt">15pt</option>
+                                <option value="16pt">16pt</option>
+                                <option value="17pt">17pt</option>
+                                <option value="18pt">18pt</option>
+                                <option value="19pt">19pt</option>
+                                <option value="20pt">20pt</option>
+                                <option value="21pt">21pt</option>
+                                <option value="22pt">22pt</option>
+                                <option value="23pt">23pt</option>
+                                <option value="24pt">24pt</option>
+                                <option value="25pt">25pt</option>
+                                <option value="26pt">26pt</option>
+                                <option value="27pt">27pt</option>
+                                <option value="28pt">28pt</option>
+                                <option value="29pt">29pt</option>
+                                <option value="30pt">30pt</option>
+                                <option value="31pt">31pt</option>
+                                <option value="32pt">32pt</option>
+                                <option value="33pt">33pt</option>
+                                <option value="34pt">34pt</option>
+                                <option value="35pt">35pt</option>
+                                <option value="36pt">36pt</option>
+                                <option value="37pt">37pt</option>
+                                <option value="38pt">38pt</option>
+                                <option value="39pt">39pt</option>
+                                <option value="40pt">40pt</option>
+                                <option value="41pt">41pt</option>
+                                <option value="42pt">42pt</option>
+                                <option value="43pt">43pt</option>
+                                <option value="44pt">44pt</option>
+                                <option value="45pt">45pt</option>
+                                <option value="46pt">46pt</option>
+                                <option value="47pt">47pt</option>
+                                <option value="48pt">48pt</option>
+                                <option value="49pt">49pt</option>
+                                <option value="50pt">50pt</option>
+                                <option value="51pt">51pt</option>
+                                <option value="52pt">52pt</option>
+                                <option value="53pt">53pt</option>
+                                <option value="54pt">54pt</option>
+                                <option value="55pt">55pt</option>
+                                <option value="56pt">56pt</option>
+                                <option value="57pt">57pt</option>
+                                <option value="58pt">58pt</option>
+                                <option value="59pt">59pt</option>
+                                <option value="60pt">60pt</option>
+                                <option value="61pt">61pt</option>
+                                <option value="62pt">62pt</option>
+                                <option value="63pt">63pt</option>
+                                <option value="64pt">64pt</option>
+                                <option value="65pt">65pt</option>
+                                <option value="66pt">66pt</option>
+                                <option value="67pt">67pt</option>
+                                <option value="68pt">68pt</option>
+                                <option value="69pt">69pt</option>
+                                <option value="70pt">70pt</option>
+                                <option value="71pt">71pt</option>
+                                <option value="72pt">72pt</option>
+                                <option value="73pt">73pt</option>
+                                <option value="74pt">74pt</option>
+                                <option value="75pt">75pt</option>
+                                <option value="76pt">76pt</option>
+                                <option value="77pt">77pt</option>
+                                <option value="78pt">78pt</option>
+                                <option value="79pt">79pt</option>
+                                <option value="80pt">80pt</option>
+                                <option value="81pt">81pt</option>
+                                <option value="82pt">82pt</option>
+                                <option value="83pt">83pt</option>
+                                <option value="84pt">84pt</option>
+                                <option value="85pt">85pt</option>
+                                <option value="86pt">86pt</option>
+                                <option value="87pt">87pt</option>
+                                <option value="88pt">88pt</option>
+                                <option value="89pt">89pt</option>
+                                <option value="90pt">90pt</option>
+                                <option value="91pt">91pt</option>
+                                <option value="92pt">92pt</option>
+                                <option value="93pt">93pt</option>
+                                <option value="94pt">94pt</option>
+                                <option value="95pt">95pt</option>
+                                <option value="96pt">96pt</option>
+                                <option value="97pt">97pt</option>
+                                <option value="98pt">98pt</option>
+                                <option value="99pt">99pt</option>
+                                <option value="100pt">100pt</option>
                             </select>
                         </div>
                         <div id="editor-blocks" class="editor-blocks">
                         </div>
                         <div class="editor-controls">
-                            <button type="button" id="btn-add-text-block" class="btn btn-secondary"><i class="fa-solid fa-align-left"></i> 텍스트 추가</button>
-                            <button type="button" id="btn-add-code-block" class="btn btn-secondary"><i class="fa-solid fa-code"></i> 코드 추가</button>
-                            <button type="button" id="btn-add-image-block" class="btn btn-secondary"><i class="fa-solid fa-image"></i> 사진 추가</button>
+                            <button type="button" id="btn-add-text-block" class="btn btn-secondary"><i
+                                    class="fa-solid fa-align-left"></i> 텍스트 추가</button>
+                            <button type="button" id="btn-add-code-block" class="btn btn-secondary"><i
+                                    class="fa-solid fa-code"></i> 코드 추가</button>
+                            <button type="button" id="btn-add-image-block" class="btn btn-secondary"><i
+                                    class="fa-solid fa-image"></i> 사진 추가</button>
                         </div>
                     </div>
 
@@ -136,7 +251,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
-    
+
     <script type="module" src="script.js"></script>
 </body>
+
 </html>
