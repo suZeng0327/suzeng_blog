@@ -442,3 +442,10 @@ code[class*="language-"] {
     margin: 20px auto;
     border-radius: 6px;
 }
+
+/* 광고 컨테이너 스타일 */
+.ad-container {
+    padding: 10px 0;
+    border-top: 1px solid var(--border-color);
+    /* 구분을 위한 위쪽 선 */
+}
